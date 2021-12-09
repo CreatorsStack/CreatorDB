@@ -1,5 +1,8 @@
 package simpledb.execution;
 
+import simpledb.algorithm.Join.JoinStrategy;
+import simpledb.algorithm.Join.SortMergeJoin;
+import simpledb.storage.TupleIterator;
 import simpledb.transaction.TransactionAbortedException;
 import simpledb.common.DbException;
 import simpledb.storage.Tuple;
@@ -14,6 +17,14 @@ public class Join extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private JoinPredicate       joinPredicate;
+    private OpIterator          child1;
+    private OpIterator          child2;
+    private TupleDesc           td;
+
+    private JoinStrategy        joinStrategy;
+    private TupleIterator       iterator;
+
     /**
      * Constructor. Accepts two children to join and the predicate to join them
      * on
@@ -27,11 +38,20 @@ public class Join extends Operator {
      */
     public Join(JoinPredicate p, OpIterator child1, OpIterator child2) {
         // some code goes here
+        this.joinPredicate = p;
+        this.child1 = child1;
+        this.child2 = child2;
+        final TupleDesc td1 = child1.getTupleDesc();
+        final TupleDesc td2 = child2.getTupleDesc();
+        final ArrayList<TupleDesc.TDItem> tdItems = new ArrayList<>();
+        tdItems.addAll(td1.getDescList());
+        tdItems.addAll(td2.getDescList());
+        this.td = new TupleDesc(tdItems);
     }
 
     public JoinPredicate getJoinPredicate() {
         // some code goes here
-        return null;
+        return this.joinPredicate;
     }
 
     /**
@@ -41,7 +61,8 @@ public class Join extends Operator {
      * */
     public String getJoinField1Name() {
         // some code goes here
-        return null;
+        final int field1 = this.joinPredicate.getField1();
+        return this.child1.getTupleDesc().getFieldName(field1);
     }
 
     /**
@@ -51,7 +72,8 @@ public class Join extends Operator {
      * */
     public String getJoinField2Name() {
         // some code goes here
-        return null;
+        final int field2 = this.joinPredicate.getField2();
+        return this.child2.getTupleDesc().getFieldName(field2);
     }
 
     /**
@@ -60,20 +82,34 @@ public class Join extends Operator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.td;
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        this.child1.open();
+        this.child2.open();
+        super.open();
+        // You can choose sortMerge join, hash join, or nested loop join
+        this.joinStrategy = new SortMergeJoin(child1, child2, this.td, this.joinPredicate);
+        this.iterator = this.joinStrategy.doJoin();
+        this.iterator.open();
     }
 
     public void close() {
         // some code goes here
+        this.joinStrategy.close();
+        this.iterator.close();
+        this.child1.close();
+        this.child2.close();
+        super.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+        close();
+        open();
     }
 
     /**
@@ -96,18 +132,25 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
+        if (this.iterator.hasNext()) {
+            return this.iterator.next();
+        }
         return null;
     }
 
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return null;
+        return new OpIterator[]{this.child1, this.child2};
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
         // some code goes here
+        if (children.length == 2) {
+            this.child1 = children[0];
+            this.child2 = children[1];
+        }
     }
 
 }
