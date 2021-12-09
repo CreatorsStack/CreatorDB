@@ -9,13 +9,11 @@ import org.junit.Test;
 
 import simpledb.storage.BufferPool;
 import simpledb.common.Database;
-import simpledb.common.DbException;
 import simpledb.storage.HeapFile;
 import simpledb.storage.HeapFileEncoder;
 import simpledb.Parser;
 import simpledb.optimizer.TableStats;
 import simpledb.transaction.Transaction;
-import simpledb.transaction.TransactionAbortedException;
 import simpledb.common.Utility;
 
 public class QueryTest {

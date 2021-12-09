@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.Assert;
 
 import simpledb.common.Database;
-import simpledb.common.DbException;
 import simpledb.execution.Predicate;
 import simpledb.optimizer.TableStats;
 import simpledb.storage.Field;
@@ -17,7 +16,6 @@ import simpledb.storage.HeapFile;
 import simpledb.storage.IntField;
 import simpledb.systemtest.SimpleDbTestBase;
 import simpledb.systemtest.SystemTestUtil;
-import simpledb.transaction.TransactionAbortedException;
 
 public class TableStatsTest extends SimpleDbTestBase {
 	public static final int IO_COST = 71;
