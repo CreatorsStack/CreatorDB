@@ -18,10 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * For now, this is a stub catalog that must be populated with tables by a
  * user program before it can be used -- eventually, this should be converted
  * to a catalog that reads a catalog table from disk.
- * 
+ *
  * @Threadsafe
  */
 public class Catalog {
+
+
+    private final Map<Integer, TableInfo> tableInfoMap;
+    private final Map<String, Integer> nameToIdMap;
 
     /**
      * Constructor.
@@ -29,6 +33,8 @@ public class Catalog {
      */
     public Catalog() {
         // some code goes here
+        this.tableInfoMap = new HashMap<>();
+        this.nameToIdMap = new HashMap<>();
     }
 
     /**
@@ -42,6 +48,10 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+        final int tableId = file.getId();
+        final TableInfo tableInfo = new TableInfo(tableId, name, file, pkeyField);
+        this.tableInfoMap.put(tableId, tableInfo);
+        this.nameToIdMap.put(name, tableId);
     }
 
     public void addTable(DbFile file, String name) {
@@ -65,7 +75,17 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        if (!this.nameToIdMap.containsKey(name)) {
+            throw new NoSuchElementException();
+        }
+        return this.nameToIdMap.get(name);
+    }
+
+    private TableInfo getTableInfo(int tableId) throws NoSuchElementException {
+        if (!this.tableInfoMap.containsKey(tableId)) {
+            throw new NoSuchElementException();
+        }
+        return this.tableInfoMap.get(tableId);
     }
 
     /**
@@ -76,6 +96,10 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
+        final DbFile dbFile = getTableInfo(tableid).getDbFile();
+        if (dbFile != null) {
+            return dbFile.getTupleDesc();
+        }
         return null;
     }
 
@@ -87,29 +111,32 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        return getTableInfo(tableid).getDbFile();
     }
 
-    public String getPrimaryKey(int tableid) {
+    public String getPrimaryKey(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        return getTableInfo(tableid).getPrimaryKeyName();
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        final Set<Integer> ids = this.tableInfoMap.keySet();
+        return ids.iterator();
     }
 
-    public String getTableName(int id) {
+    public String getTableName(int tableid) {
         // some code goes here
-        return null;
+        return getTableInfo(tableid).getTableName();
     }
-    
+
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+        this.tableInfoMap.clear();
+        this.nameToIdMap.clear();
     }
-    
+
     /**
      * Reads the schema from a file and creates the appropriate tables in the database.
      * @param catalogFile
@@ -118,23 +145,23 @@ public class Catalog {
         String line = "";
         String baseFolder=new File(new File(catalogFile).getAbsolutePath()).getParent();
         try {
-            BufferedReader br = new BufferedReader(new FileReader(catalogFile));
-            
+            BufferedReader br = new BufferedReader(new FileReader(new File(catalogFile)));
+
             while ((line = br.readLine()) != null) {
                 //assume line is of the format name (field type, field type, ...)
                 String name = line.substring(0, line.indexOf("(")).trim();
                 //System.out.println("TABLE NAME: " + name);
                 String fields = line.substring(line.indexOf("(") + 1, line.indexOf(")")).trim();
                 String[] els = fields.split(",");
-                ArrayList<String> names = new ArrayList<>();
-                ArrayList<Type> types = new ArrayList<>();
+                ArrayList<String> names = new ArrayList<String>();
+                ArrayList<Type> types = new ArrayList<Type>();
                 String primaryKey = "";
                 for (String e : els) {
                     String[] els2 = e.trim().split(" ");
                     names.add(els2[0].trim());
-                    if (els2[1].trim().equalsIgnoreCase("int"))
+                    if (els2[1].trim().toLowerCase().equals("int"))
                         types.add(Type.INT_TYPE);
-                    else if (els2[1].trim().equalsIgnoreCase("string"))
+                    else if (els2[1].trim().toLowerCase().equals("string"))
                         types.add(Type.STRING_TYPE);
                     else {
                         System.out.println("Unknown type " + els2[1]);
@@ -165,4 +192,3 @@ public class Catalog {
         }
     }
 }
-

@@ -37,9 +37,9 @@ public class BufferPoolWriteTest extends TestUtil.CreateHeapFile {
     	// this version of insertTuple inserts duplicate copies of the same tuple,
     	// each on a new page
     	@Override
-    	public List<Page> insertTuple(TransactionId tid, Tuple t)
+    	public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
     			throws DbException, IOException {
-    		List<Page> dirtypages = new ArrayList<>();
+			ArrayList<Page> dirtypages = new ArrayList<>();
     		for(int i = 0; i < duplicates; i++) {
     			// create a blank page
     			BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(super.getFile(), true));
