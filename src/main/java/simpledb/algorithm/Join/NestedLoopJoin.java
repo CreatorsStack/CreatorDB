@@ -9,6 +9,7 @@ import simpledb.storage.TupleIterator;
 import java.util.ArrayList;
 import java.util.List;
 
+// An impl for nestedLoopJoin
 public class NestedLoopJoin extends JoinStrategy {
 
     public NestedLoopJoin(final OpIterator child1, final OpIterator child2, final TupleDesc td,

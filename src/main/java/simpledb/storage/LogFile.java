@@ -88,7 +88,7 @@ public class LogFile {
     final static int         INT_SIZE            = 4;
     final static int         LONG_SIZE           = 8;
 
-    long                     currentOffset       = -1;              //protected by this
+    long                     currentOffset       = -1;             //protected by this
                                                                     //    int pageSize;
     int                      totalRecords        = 0;              // for PatchTest //protected by this
 

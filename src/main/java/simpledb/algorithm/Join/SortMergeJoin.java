@@ -12,6 +12,11 @@ import java.util.Arrays;
 import java.util.List;
 
 // An impl of sort merge join
+// Phase1: division outer table to block1
+// Phase2: for each block1, division inner table to block2
+// Phase3: sort block1 and block2
+// Phase4: do join on block1 and block2
+
 public class SortMergeJoin extends JoinStrategy {
     private final int     blockCacheSize = 131072 * 5;
     private Tuple[]       block1;
@@ -104,9 +109,10 @@ public class SortMergeJoin extends JoinStrategy {
             case LESS_THAN_OR_EQ: {
                 while (index1 < end1) {
                     final Tuple lTuple = this.block1[index1++];
-                    while (index2 < end2 && !this.joinPredicate.filter(lTuple, this.block2[index2])) index2 ++;
+                    while (index2 < end2 && !this.joinPredicate.filter(lTuple, this.block2[index2]))
+                        index2++;
                     while (index2 < end2) {
-                        final Tuple rTuple = this.block2[index2 ++];
+                        final Tuple rTuple = this.block2[index2++];
                         tupleList.add(mergeTuple(lTuple, rTuple, this.td));
                     }
                 }
@@ -115,8 +121,9 @@ public class SortMergeJoin extends JoinStrategy {
             case GREATER_THAN:
             case GREATER_THAN_OR_EQ: {
                 while (index1 < end1) {
-                    final Tuple lTuple = this.block1[index1 ++];
-                    while (index2 < end2 && this.joinPredicate.filter(lTuple, this.block2[index2])) index2 ++;
+                    final Tuple lTuple = this.block1[index1++];
+                    while (index2 < end2 && this.joinPredicate.filter(lTuple, this.block2[index2]))
+                        index2++;
                     for (int i = 0; i < index2; i++) {
                         final Tuple rTuple = this.block2[i];
                         tupleList.add(mergeTuple(lTuple, rTuple, this.td));

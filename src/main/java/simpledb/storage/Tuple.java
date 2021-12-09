@@ -3,6 +3,7 @@ package simpledb.storage;
 import simpledb.util.IteratorWrapper;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -97,9 +98,10 @@ public class Tuple implements Serializable {
      *
      * where \t is any whitespace (except a newline)
      */
+    @Override
     public String toString() {
-        // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        return "Tuple{" + "tupleDesc=" + tupleDesc + ", fields=" + Arrays.toString(fields) + ", recordId=" + recordId
+               + '}';
     }
 
     /**
