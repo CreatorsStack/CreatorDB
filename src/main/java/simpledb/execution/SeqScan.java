@@ -135,6 +135,7 @@ public class SeqScan implements OpIterator {
         final Tuple result = new Tuple(getTupleDesc());
         for (int i = 0; i < next.getTupleDesc().numFields(); i++) {
             result.setField(i, next.getField(i));
+            result.setRecordId(next.getRecordId());
         }
         return result;
     }

@@ -180,7 +180,8 @@ public class BufferPool {
     public void deleteTuple(TransactionId tid, Tuple t) throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
-        final DbFile table = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
+        int tableId = t.getRecordId().getPageId().getTableId();
+        DbFile table = Database.getCatalog().getDatabaseFile(tableId);
         final List<Page> dirtyPages = table.deleteTuple(tid, t);
         for (final Page page : dirtyPages) {
             page.markDirty(true, tid);

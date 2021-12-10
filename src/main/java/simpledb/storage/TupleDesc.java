@@ -37,15 +37,17 @@ public class TupleDesc implements Serializable {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
+        public boolean equals(Object o)
+        {
+            if(o == null)
+                return false;
+            if(o == this)
                 return true;
-            }
-            if (o instanceof TDItem) {
-                TDItem another = (TDItem) o;
-                return Objects.equals(fieldName, another.fieldName) && Objects.equals(fieldType, another.fieldType);
-            }
-            return false;
+            if(!(o instanceof TDItem))
+                return false;
+
+            TDItem tdio = (TDItem) o;
+            return tdio.fieldType == this.fieldType;
         }
 
         public String toString() {
@@ -219,18 +221,23 @@ public class TupleDesc implements Serializable {
      */
 
     public boolean equals(Object o) {
-        // some code goes here
-        if (o == null || !(o instanceof TupleDesc)) {
+        if(o == null)
             return false;
-        }
-        final TupleDesc other = (TupleDesc) o;
-        if (other.fieldNum != this.fieldNum) {
+        if(o == this)
+            return true;
+        if(!(o instanceof TupleDesc))
             return false;
-        }
-        for (int i = 0; i < this.fieldNum; i++) {
-            if (!this.descList.get(i).equals(other.descList.get(i))) {
+
+        TupleDesc tdo = (TupleDesc) o;
+        if(this.numFields() != tdo.numFields())
+            return false;
+        Iterator<TDItem> it1 = tdo.iterator();
+        Iterator<TDItem> it2 = this.iterator();
+        while(it2.hasNext())
+        {
+            // override equals in TDItem
+            if(!(it1.next().equals(it2.next())))
                 return false;
-            }
         }
         return true;
     }
