@@ -37,13 +37,12 @@ public class TupleDesc implements Serializable {
         }
 
         @Override
-        public boolean equals(Object o)
-        {
-            if(o == null)
+        public boolean equals(Object o) {
+            if (o == null)
                 return false;
-            if(o == this)
+            if (o == this)
                 return true;
-            if(!(o instanceof TDItem))
+            if (!(o instanceof TDItem))
                 return false;
 
             TDItem tdio = (TDItem) o;
@@ -221,22 +220,21 @@ public class TupleDesc implements Serializable {
      */
 
     public boolean equals(Object o) {
-        if(o == null)
+        if (o == null)
             return false;
-        if(o == this)
+        if (o == this)
             return true;
-        if(!(o instanceof TupleDesc))
+        if (!(o instanceof TupleDesc))
             return false;
 
         TupleDesc tdo = (TupleDesc) o;
-        if(this.numFields() != tdo.numFields())
+        if (this.numFields() != tdo.numFields())
             return false;
         Iterator<TDItem> it1 = tdo.iterator();
         Iterator<TDItem> it2 = this.iterator();
-        while(it2.hasNext())
-        {
+        while (it2.hasNext()) {
             // override equals in TDItem
-            if(!(it1.next().equals(it2.next())))
+            if (!(it1.next().equals(it2.next())))
                 return false;
         }
         return true;

@@ -46,7 +46,7 @@ public class Insert extends Operator {
         this.tid = t;
         this.child = child;
         this.tableId = tableId;
-        final Type[] types = new Type[]{Type.INT_TYPE};
+        final Type[] types = new Type[] { Type.INT_TYPE };
         this.td = new TupleDesc(types);
     }
 
@@ -98,7 +98,7 @@ public class Insert extends Operator {
                 e.printStackTrace();
                 System.out.println("Error happen when insert tuple:" + e.getMessage());
             }
-            cnt ++;
+            cnt++;
         }
         if (cnt == 0 && isFetched) {
             return null;
@@ -112,7 +112,7 @@ public class Insert extends Operator {
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return new OpIterator[]{this.child};
+        return new OpIterator[] { this.child };
     }
 
     @Override

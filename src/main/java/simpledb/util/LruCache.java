@@ -42,11 +42,11 @@ public class LruCache<K, V> {
     }
 
     public void moveToHead(Node node) {
-        remove(node);
+        removeNode(node);
         linkToHead(node);
     }
 
-    public void remove(Node node) {
+    public void removeNode(Node node) {
         if (node.pre != null && node.next != null) {
             node.pre.next = node.next;
             node.next.pre = node.pre;
@@ -55,8 +55,16 @@ public class LruCache<K, V> {
 
     public Node removeLast() {
         Node last = this.tail.pre;
-        remove(last);
+        removeNode(last);
         return last;
+    }
+
+    public void remove(K key) {
+        if (this.nodeMap.containsKey(key)) {
+            final Node node = this.nodeMap.get(key);
+            removeNode(node);
+            this.nodeMap.remove(key);
+        }
     }
 
     public V get(K key) {

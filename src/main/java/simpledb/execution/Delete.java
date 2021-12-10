@@ -38,7 +38,7 @@ public class Delete extends Operator {
         this.tid = t;
         this.child = child;
         this.tableId = tableId;
-        final Type[] types = new Type[]{Type.INT_TYPE};
+        final Type[] types = new Type[] { Type.INT_TYPE };
         this.td = new TupleDesc(types);
     }
 
@@ -66,7 +66,6 @@ public class Delete extends Operator {
         open();
     }
 
-
     /**
      * Deletes tuples as they are read from the child operator. Deletes are
      * processed via the buffer pool (which can be accessed via the
@@ -86,7 +85,7 @@ public class Delete extends Operator {
                 e.printStackTrace();
                 System.out.println("Error happen when delete tuple:" + e.getMessage());
             }
-            cnt ++;
+            cnt++;
         }
         if (cnt == 0 && isFetched) {
             return null;
@@ -100,7 +99,7 @@ public class Delete extends Operator {
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return new OpIterator[]{this.child};
+        return new OpIterator[] { this.child };
     }
 
     @Override
