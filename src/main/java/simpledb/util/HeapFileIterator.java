@@ -59,7 +59,12 @@ public class HeapFileIterator implements DbFileIterator {
             return true;
         }
         // Cache another batch of pages
-        cacheFilePages();
+        while (!this.pageCachePool.hasNext()) {
+            cacheFilePages();
+            if (this.totalPage == this.currentPageId) {
+                break;
+            }
+        }
         return this.pageCachePool.hasNext();
     }
 

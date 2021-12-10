@@ -10,6 +10,7 @@ import simpledb.util.LruCache;
 import java.io.*;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -155,6 +156,12 @@ public class BufferPool {
                                                                     TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        final DbFile table = Database.getCatalog().getDatabaseFile(tableId);
+        final List<Page> dirtyPages = table.insertTuple(tid, t);
+        for (final Page page : dirtyPages) {
+            page.markDirty(true, tid);
+            this.lruCache.put(page.getId(), page);
+        }
     }
 
     /**
@@ -173,6 +180,12 @@ public class BufferPool {
     public void deleteTuple(TransactionId tid, Tuple t) throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        final DbFile table = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
+        final List<Page> dirtyPages = table.deleteTuple(tid, t);
+        for (final Page page : dirtyPages) {
+            page.markDirty(true, tid);
+            this.lruCache.put(page.getId(), page);
+        }
     }
 
     /**
