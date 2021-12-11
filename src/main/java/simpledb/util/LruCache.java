@@ -59,7 +59,7 @@ public class LruCache<K, V> {
         return last;
     }
 
-    public void remove(K key) {
+    public synchronized void remove(K key) {
         if (this.nodeMap.containsKey(key)) {
             final Node node = this.nodeMap.get(key);
             removeNode(node);
@@ -67,7 +67,7 @@ public class LruCache<K, V> {
         }
     }
 
-    public V get(K key) {
+    public synchronized V get(K key) {
         if (this.nodeMap.containsKey(key)) {
             Node node = this.nodeMap.get(key);
             moveToHead(node);
@@ -77,17 +77,17 @@ public class LruCache<K, V> {
     }
 
     // Return the evicted item if the space is insufficient
-    public V put(K key, V value) {
+    public synchronized V put(K key, V value) {
         if (this.nodeMap.containsKey(key)) {
             Node node = this.nodeMap.get(key);
             node.value = value;
             moveToHead(node);
         } else {
-            if (this.nodeMap.size() == this.maxSize) {
-                Node last = removeLast();
-                this.nodeMap.remove(last.key);
-                return last.value;
-            }
+            //            if (this.nodeMap.size() == this.maxSize) {
+            //                Node last = removeLast();
+            //                this.nodeMap.remove(last.key);
+            //                return last.value;
+            //            }
             Node node = new Node(key, value);
             this.nodeMap.put(key, node);
             linkToHead(node);
@@ -95,9 +95,27 @@ public class LruCache<K, V> {
         return null;
     }
 
-    public Iterator<V> valueIterator() {
+    public synchronized Iterator<V> reverseIterator() {
+        Node last = this.tail.pre;
+        final ArrayList<V> list = new ArrayList<>();
+        while (!last.equals(this.head)) {
+            list.add(last.value);
+            last = last.pre;
+        }
+        return list.iterator();
+    }
+
+    public synchronized Iterator<V> valueIterator() {
         final Collection<Node> nodes = this.nodeMap.values();
         final List<V> valueList = nodes.stream().map(x -> x.value).collect(Collectors.toList());
         return valueList.iterator();
+    }
+
+    public synchronized int getSize() {
+        return this.nodeMap.size();
+    }
+
+    public int getMaxSize() {
+        return maxSize;
     }
 }
