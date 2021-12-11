@@ -209,7 +209,6 @@ public class JoinOptimizer {
         return card <= 0 ? 1 : card;
     }
 
-
     /**
      * Helper method to enumerate all of the subsets of a given size of a
      * specified vector.
@@ -221,25 +220,23 @@ public class JoinOptimizer {
      * @return a set of all subsets of the specified size
      */
     public <T> Set<Set<T>> enumerateSubsets(List<T> v, int size) {
-        Set<Set<T>> els = new HashSet<>();
-        els.add(new HashSet<>());
-        // Iterator<Set> it;
-        // long start = System.currentTimeMillis();
+        final Set<Set<T>> result = new HashSet<>();
+        final Set<T> path = new HashSet<>();
+        subsetDfs(result, path, v, 0, size);
+        return result;
+    }
 
-        for (int i = 0; i < size; i++) {
-            Set<Set<T>> newels = new HashSet<>();
-            for (Set<T> s : els) {
-                for (T t : v) {
-                    Set<T> news = new HashSet<>(s);
-                    if (news.add(t))
-                        newels.add(news);
-                }
-            }
-            els = newels;
+    private <T> void subsetDfs(final Set<Set<T>> result, final Set<T> path, final List<T> v, int curIndex,
+                               final int size) {
+        if (path.size() == size) {
+            result.add(new HashSet<>(path));
+            return;
         }
-
-        return els;
-
+        for (int i = curIndex; i < (v.size() - (size - path.size() - 1)); i++) {
+            path.add(v.get(i));
+            subsetDfs(result, path, v, i + 1, size);
+            path.remove(v.get(i));
+        }
     }
 
     /**
@@ -264,10 +261,30 @@ public class JoinOptimizer {
      */
     public List<LogicalJoinNode> orderJoins(Map<String, TableStats> stats, Map<String, Double> filterSelectivities,
                                             boolean explain) throws ParsingException {
-
-        // some code goes here
-        //Replace the following
-        return joins;
+        final PlanCache pc = new PlanCache();
+        CostCard costCard = null;
+        for (int i = 1; i <= this.joins.size(); i++) {
+            final Set<Set<LogicalJoinNode>> subsets = enumerateSubsets(this.joins, i);
+            for (final Set<LogicalJoinNode> subPlan : subsets) {
+                double bestCost = Double.MAX_VALUE;
+                for (final LogicalJoinNode removeNode : subPlan) {
+                    final CostCard cc = computeCostAndCardOfSubplan(stats, filterSelectivities, removeNode, subPlan,
+                        bestCost, pc);
+                    if (cc != null) {
+                        bestCost = cc.cost;
+                        costCard = cc;
+                    }
+                }
+                if (bestCost != Double.MAX_VALUE) {
+                    pc.addPlan(subPlan, bestCost, costCard.card, costCard.plan);
+                }
+            }
+        }
+        if (costCard != null) {
+            return costCard.plan;
+        } else {
+            return joins;
+        }
     }
 
     // ===================== Private Methods =================================
