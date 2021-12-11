@@ -302,6 +302,7 @@ public class LogicalPlan {
         Map<String, Double> filterSelectivities = new HashMap<>();
         Map<String, TableStats> statsMap = new HashMap<>();
 
+        // 生成 seqScan
         while (tableIt.hasNext()) {
             LogicalScanNode table = tableIt.next();
             SeqScan ss = null;
@@ -318,6 +319,7 @@ public class LogicalPlan {
 
         }
 
+        // 生产 filter , 将 上面生产的 seqScan 作为其 child operator
         for (LogicalFilterNode lf : filters) {
             OpIterator subplan = subplanMap.get(lf.tableAlias);
             if (subplan == null) {
@@ -344,6 +346,8 @@ public class LogicalPlan {
             } catch (NoSuchElementException e) {
                 throw new ParsingException("Unknown field " + lf.fieldQuantifiedName);
             }
+
+            // 到这里, 将 table 的 seqScan 算子覆盖为 filter 算子
             subplanMap.put(lf.tableAlias, new Filter(p, subplan));
 
             TableStats s = statsMap.get(Database.getCatalog().getTableName(this.getTableId(lf.tableAlias)));
@@ -391,10 +395,12 @@ public class LogicalPlan {
                 throw new ParsingException("Unknown table in WHERE clause " + lj.t2Alias);
 
             OpIterator j;
+            // 到这里, 根据 joinOptimizer 生成一个 join 算子, 并送入 subplanMap, 替换 t1name
             j = JoinOptimizer.instantiateJoin(lj, plan1, plan2);
             subplanMap.put(t1name, j);
 
             if (!isSubqueryJoin) {
+                // 如果不是嵌套 join, 去除 t2name
                 subplanMap.remove(t2name);
                 equivMap.put(t2name, t1name); //keep track of the fact that this new node contains both tables
                 //make sure anything that was equiv to lj.t2 (which we are just removed) is

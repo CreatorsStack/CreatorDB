@@ -133,6 +133,8 @@ public class Parser {
 
     public LogicalPlan parseQueryLogicalPlan(TransactionId tid, ZQuery q) throws IOException, Zql.ParseException,
                                                                          simpledb.ParsingException {
+
+        // 1.Parse from field to generate table scan node
         @SuppressWarnings("unchecked")
         List<ZFromItem> from = q.getFrom();
         LogicalPlan lp = new LogicalPlan();
@@ -165,7 +167,7 @@ public class Parser {
             }
         }
 
-        // now parse the where clause, creating Filter and Join nodes as needed
+        // 2.now parse the where clause, creating Filter and Join nodes as needed
         ZExp w = q.getWhere();
         if (w != null) {
 
@@ -174,7 +176,6 @@ public class Parser {
             }
             ZExpression wx = (ZExpression) w;
             processExpression(tid, wx, lp);
-
         }
 
         // now look for group by fields
@@ -262,7 +263,10 @@ public class Parser {
                                                                   Zql.ParseException {
         Query query = new Query(tId);
 
+        // 生成 logical plan
         LogicalPlan lp = parseQueryLogicalPlan(tId, s);
+
+        // 转化 physicalPlan
         OpIterator physicalPlan = lp.physicalPlan(tId, TableStats.getStatsMap(), explain);
         query.setPhysicalPlan(physicalPlan);
         query.setLogicalPlan(lp);
@@ -591,9 +595,27 @@ public class Parser {
             reader.addCompletor(completor);
 
             StringBuilder buffer = new StringBuilder();
-            String line;
+
+            // Example
+            /**
+             * the query plan tree:
+             *              π(d.f2,d1.f2),card:1
+             *              |
+             *              o(d.f2),card:1
+             *              |
+             *           ⨝(hash)(d.f1=d1.f1),card:1
+             *    __________|___________
+             *    |                    |
+             *    σ(d.f2>20),card:1    |
+             *    |                    |
+             *  scan(data d)         scan(data d1)
+             *
+             */
+            String line = "select d.f2, d1.f2 from data d, data d1 " + "where d.f1 = d1.f1 and d.f2 > 20 "
+                          + "order by d.f2 desc;";
             boolean quit = false;
-            while (!quit && (line = reader.readLine("SimpleDB> ")) != null) {
+            //while (!quit && (line = reader.readLine("SimpleDB> ")) != null) {
+            while (!quit) {
                 // Split statements at ';': handles multiple statements on one
                 // line, or one
                 // statement spread across many lines
