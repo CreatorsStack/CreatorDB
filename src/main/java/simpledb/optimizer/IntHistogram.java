@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 /** A class to represent a fixed-width histogram over a single integer-based field.
  */
-public class IntHistogram {
+public class IntHistogram implements Histogram<Integer> {
 
     private int   maxVal;
     private int   minVal;
@@ -48,7 +48,7 @@ public class IntHistogram {
      * Add a value to the set of values that you are keeping a histogram of.
      * @param v Value to add to the histogram
      */
-    public void addValue(int v) {
+    public void addValue(Integer v) {
         // some code goes here
         if (v < this.minVal || v > this.maxVal) {
             return;
@@ -102,7 +102,7 @@ public class IntHistogram {
      * @param v Value
      * @return Predicted selectivity of this particular operator and value
      */
-    public double estimateSelectivity(Predicate.Op op, int v) {
+    public double estimateSelectivity(Predicate.Op op, Integer v) {
         final int bucketIndex = Math.min((v - this.minVal) / this.width, this.buckets - 1);
         final int bucketWidth = bucketIndex < this.buckets - 1 ? this.width : this.lastBucketWidth;
         double ans;
