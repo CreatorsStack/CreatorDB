@@ -85,7 +85,7 @@ public class BufferPool {
                                                                         DbException {
         // some code goes here
         final int lockType = perm == Permissions.READ_ONLY ? 0 : 1;
-        final int timeout = new Random().nextInt(2000) + 5000;
+        final int timeout = new Random().nextInt(2000) + 1000;
         if (!this.lockManager.tryAcquireLock(pid, tid, lockType, timeout)) {
             throw new TransactionAbortedException();
         }
