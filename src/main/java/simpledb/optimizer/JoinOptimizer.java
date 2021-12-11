@@ -125,7 +125,9 @@ public class JoinOptimizer {
             // HINT: You may need to use the variable "j" if you implemented
             // a join algorithm that's more complicated than a basic
             // nested-loops join.
-            return -1.0;
+            final double IoCost = cost1 + card1 * cost2;
+            final double CpuCost = card1 * card2;
+            return IoCost + CpuCost;
         }
     }
 
@@ -167,10 +169,46 @@ public class JoinOptimizer {
                                                    String field1PureName, String field2PureName, int card1, int card2,
                                                    boolean t1pkey, boolean t2pkey, Map<String, TableStats> stats,
                                                    Map<String, Integer> tableAliasToId) {
+
+        /**
+         * * For equality joins, when one of the attributes is a primary key, the number of tuples produced by the join cannot
+         *   be larger than the cardinality of the non-primary key attribute.
+         *
+         * * For equality joins when there is no primary key, it's hard to say much about what the size of the output
+         *   is -- it could be the size of the product of the cardinalities of the tables (if both tables have the
+         *   same value for all tuples) -- or it could be 0.  It's fine to make up a simple heuristic (say,
+         *   the size of the larger of the two tables).
+         *
+         * * For range scans, it is similarly hard to say anything accurate about sizes.
+         *   The size of the output should be proportional to
+         *   the sizes of the inputs.  It is fine to assume that a fixed fraction
+         *   of the cross-product is emitted by range scans (say, 30%).  In general, the cost of a range
+         *   join should be larger than the cost of a non-primary key equality join of two tables
+         *   of the same size.
+         */
         int card = 1;
-        // some code goes here
+        if (t1pkey && t2pkey) {
+            card = Math.min(card1, card2);
+        } else if (!t1pkey && !t2pkey) {
+            card = Math.max(card1, card2);
+        } else {
+            card = t1pkey ? card2 : card1;
+        }
+        switch (joinOp) {
+            case EQUALS: {
+                break;
+            }
+            case NOT_EQUALS: {
+                card = card1 * card2 - card;
+                break;
+            }
+            default: {
+                card = card1 * card2 / 3;
+            }
+        }
         return card <= 0 ? 1 : card;
     }
+
 
     /**
      * Helper method to enumerate all of the subsets of a given size of a

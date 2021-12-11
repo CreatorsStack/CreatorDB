@@ -1,6 +1,7 @@
 package simpledb.execution;
 
 import simpledb.algorithm.Join.JoinStrategy;
+import simpledb.algorithm.Join.NestedLoopJoin;
 import simpledb.algorithm.Join.SortMergeJoin;
 import simpledb.storage.TupleIterator;
 import simpledb.transaction.TransactionAbortedException;
@@ -91,7 +92,7 @@ public class Join extends Operator {
         this.child2.open();
         super.open();
         // You can choose sortMerge join, hash join, or nested loop join
-        this.joinStrategy = new SortMergeJoin(child1, child2, this.td, this.joinPredicate);
+        this.joinStrategy = new NestedLoopJoin(child1, child2, this.td, this.joinPredicate);
         this.iterator = this.joinStrategy.doJoin();
         this.iterator.open();
     }

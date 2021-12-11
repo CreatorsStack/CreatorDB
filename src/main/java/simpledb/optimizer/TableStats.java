@@ -121,7 +121,6 @@ public class TableStats {
     // Fetch table field's values by seqScan
     private Map<Integer, ArrayList> fetchFieldValues(final int tableId) {
         final Map<Integer, ArrayList> fieldValueMap = new HashMap<>();
-        final TupleDesc td = Database.getCatalog().getTupleDesc(tableId);
         for (int i = 0; i < td.numFields(); i++) {
             if (td.getFieldType(i) == Type.INT_TYPE) {
                 fieldValueMap.put(i, new ArrayList<Integer>());
