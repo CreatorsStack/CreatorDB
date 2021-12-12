@@ -1,228 +1,78 @@
-course-info
-===========
+# 总览
 
-GitHub Repo for http://dsg.csail.mit.edu/6.830/
+![img](https://gitee.com/zisuu/mypicture/raw/master/20200103180012189.png)
 
-We will be using git, a source code control tool, to distribute labs in 6.814/6.830. This will allow you to
-incrementally download the code for the labs, and for us to push any hot fixes that might be necessary.
+在开始 simpledb 旅途之前, 我们先从整体上来看看
 
-You will also be able to use git to commit and backup your progress on the labs as you go. Course git repositories will
-be hosted as a repository in GitHub. GitHub is a website that hosts runs git servers for thousands of open source
-projects. In our case, your code will be in a private repository that is visible only to you and course staff.`
+SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事务, 索引 等, 全方位介绍了如何从0实现一个 DBMS, 可以说, 这门课是学习 TIDB 等其他分布式数据库的前提.
 
-This document describes what you need to do to get started with git, and also download and upload 6.830/6.814 labs via
-GitHub.
+项目文档:
 
-**If you are not a registered student at MIT, you are welcome to follow along, but we ask you to please keep your solution PRIVATE and not make it
-publicly available**
+[实验一题解文档](document/lab1-resolve.md)
 
-## Contents
+[实验二题解文档](document/lab2-resolve.md)
 
-- [Learning Git](#learning-git)
-- [Setting up GitHub](#setting-up-github)
-- [Installing Git](#installing-git)
-- [Setting up Git](#setting-up-git)
-- [Getting Newly Released Labs](#getting-newly-released-lab)
-- [Word of Caution](#word-of-caution)
-- [Help!](#help)
+[实验三题解文档](document/lab3-resolve.md)
 
-## Learning Git
+[实验四题解文档](document/lab4-resolve.md)
 
-There are numerous guides on using Git that are available. They range from being interactive to just text-based. Find
-one that works and experiment; making mistakes and fixing them is a great way to learn. Here is a link to resources that
-GitHub suggests:
-[https://help.github.com/articles/what-are-other-good-resources-for-learning-git-and-github][resources].
+[实验五题解文档](document/lab5-resolve.md)
 
-If you have no experience with git, you may find the following web-based tutorial
-helpful: [Try Git](https://try.github.io/levels/1/challenges/1).
+## 实验一 -- Storage
 
-## <a name="setting-up-github"></a> Setting Up GitHub
+实验一主要涉及存储 -- 也即和各种 file, page, bufferPool 等打交道
 
-Now that you have a basic understanding of Git, it's time to get started with GitHub.
+- TupleDesc: td 描述了一个表每一列的元数据, 也即每个列的类型等等
+- Tuple: 代表了一行的数据
+- Page: 代表一个表的某个 page, page 由 header 和 body 组成, header 是一个 bitmap, 记录了body 中哪个位置是存在数据的. body 中存储了一个个 Tuple
+- DbFile: SimpleDb 中, 一个 Table 用一个 file 进行存储, 每个 file 包含了若干个 page
+- BufferPool: SimpleDb 的缓存组件, 可以搭配 Lru 缓存, 效果更佳. 是整个系统最核心的组件, 任何地方访问一个 page 都需要通过 bufferPool.getPage() 方法
+- CataLog: SimpleDb 等全局目录, 包含了tableid 和 table 的映射关系等
 
-0. Install git. (See below for suggestions).
+## 实验二 -- Operators
 
-1. If you don't already have an account, sign up for one here: [https://github.com/join][join].
+实验二主要涉及算子的开发: 也即各种 Operator, 如 seqScan, join, aggregation 等
 
-### Installing git <a name="installing-git"></a>
+需要注意的是, SimpleDb 采用了的 process model 是 volcano model, 每个算子都实现了相同的接口 --- OpIterator
 
-The instructions are tested on bash/linux environments. Installing git should be a simple `apt-get / yum / etc install`.
+- SeqScan: 顺序扫描表的算子, 需要做一些缓存
+- Join + JoinPredicate: join 算子, 可以自己实现 简单的 nestedLoopJoin, 或者 sortMergeJoin
+- Filter + Predicate: filter 算子, 主要用于 where 后面的条件判断
+- Aggregate: aggregation 算子, 主要用于 sum() 等聚合函数
+- Insert / Delete: 插入/删除算子
 
-Instructions for installing git on Linux, OSX, or Windows can be found at
-[GitBook:
-Installing](http://git-scm.com/book/en/Getting-Started-Installing-Git).
+关于 Volcano model, 举个例子, 在 lab2 中会更详细的介绍![img](https://gitee.com/zisuu/mypicture/raw/master/2282357-20210228200010429-1462288556.png)
 
-If you are using Eclipse/IntelliJ, many versions come with git configured. The instructions will be slightly different than the
-command line instructions listed but will work for any OS. Detailed instructions can be found
-at [EGit User Guide](http://wiki.eclipse.org/EGit/User_Guide)
-, [EGit Tutorial](http://eclipsesource.com/blogs/tutorials/egit-tutorial), or
-[IntelliJ Help](https://www.jetbrains.com/help/idea/version-control-integration.html).
+## 实验三 -- Query Optimization
 
-## Setting Up Git <a name="setting-up-git"></a>
+这个实验主要介绍了如何简单的进行数据估算和 join 优化
 
-You should have Git installed from the previous section.
+- 利用直方图进行谓词预估统计
+- 利用 left-deep-tree 和动态规划算法进行 Join Optimizer
+- 代码量较少
 
-1. The first thing we have to do is to clone the current lab repository by issuing the following commands on the command
-   line:
+流程图如下:
 
-   ```bash
-    $ git clone https://github.com/MIT-DB-Class/simple-db-hw-2021.git
-   ```
+![img](https://img-blog.csdnimg.cn/20191220224026447.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hqdzE5OTY2Ng==,size_16,color_FFFFFF,t_70)
 
-   Now, every time a new lab or patch is released, you can
+## 实验四 -- Transaction
 
-   ```bash
-    $ git pull
-   ```
-   to get the latest. 
-   
-   That's it. You can start working on the labs! That said, we strongly encourage you to use git for more than just
-   downloading the labs. In the rest of the guide we will walk you through on how to use git for version-control
-   during your own development. 
+在这个lab中，需要在SimpleDB实现简单的 locking-based transaction system，需要在代码的合适位置添加锁和解锁，也要给每个transaction授予锁，并且跟进每个拥有锁的transaction。
 
-2. Notice that you are cloning from our repo, which means that it will be inappropriate for you to push your code to it.
-   If you want to use git for version control, you will need to create your own repo to write your changes to. Do so 
-   by clicking 'New' on the left in github, and make sure to choose **Private** when creating, so others cannot see your
-   code! Now we are going to change the repo we just checked out to point to your personal repository.
+- 需要实现一个 LockManager, 跟踪每一个 transaction 持有的锁, 并进行锁管理.
+- 需要实现 LifeTime lock, 也即有限等待策略
+- 需要实现 DeadLock detect, 可以采用超时等待, 也可以通过依赖图进行检查
 
-3. By default the remote called `origin` is set to the location that you cloned the repository from. You should see the following:
+## 实验五 -- B+ tree
 
-   ```bash
-    $ git remote -v
-        origin https://github.com/MIT-DB-Class/simple-db-hw-2021.git (fetch)
-        origin https://github.com/MIT-DB-Class/simple-db-hw-2021.git (push)
-   ```
+ab5主要是实现B+树索引，主要有查询、插入、删除等功能
 
-   We don't want that remote to be the origin. Instead, we want to change it to point to your repository. To do that, issue the following command:
+- 查询主要根据B+树的特性去递归查找即可
+- 插入要考虑节点的分裂（节点tuples满的时候）
+- 删除要考虑节点内元素的重新分配（当一个页面比较空，相邻页面比较满的时候），兄弟节点的合并（当相邻两个页面的元素都比较空的时候）
 
-   ```bash
-    $ git remote rename origin upstream
-   ```
 
-   And now you should see the following:
 
-   ```bash
-    $ git remote -v
-        upstream https://github.com/MIT-DB-Class/simple-db-hw-2021.git (fetch)
-        upstream https://github.com/MIT-DB-Class/simple-db-hw-2021.git (push)
-   ```
+## 总结
 
-4. Lastly we need to give your repository a new `origin` since it is lacking one. Issue the following command, substituting your athena username:
-
-   ```bash
-    $ git remote add origin https://github.com/[your-repo]
-   ```
-
-   If you have an error that looks like the following:
-
-   ```
-   Could not rename config section 'remote.[old name]' to 'remote.[new name]'
-   ```
-
-   Or this error:
-
-   ```
-   fatal: remote origin already exists.
-   ```
-
-   This appears to happen to some depending on the version of Git they are using. To fix it, just issue the following command:
-
-   ```bash
-   $ git remote set-url origin https://github.com/[your-repo]
-   ```
-
-   This solution was found from [StackOverflow](http://stackoverflow.com/a/2432799) thanks to [Cassidy Williams](https://github.com/cassidoo).
-
-   For reference, your final `git remote -v` should look like following when it's setup correctly:
-
-
-   ```bash
-    $ git remote -v
-        upstream https://github.com/MIT-DB-Class/simple-db-hw-2021.git (fetch)
-        upstream https://github.com/MIT-DB-Class/simple-db-hw-2021.git(push)
-        origin https://github.com/[your-repo] (fetch)
-        origin https://github.com/[your-repo] (push)
-   ```
-
-5. Let's test it out by doing a push of your master branch to GitHub by issuing the following:
-
-   ```bash
-    $ git push -u origin master
-   ```
-
-   You should see something like the following:
-
-   ```
-	Counting objects: 59, done.
-	Delta compression using up to 4 threads.
-	Compressing objects: 100% (53/53), done.
-	Writing objects: 100% (59/59), 420.46 KiB | 0 bytes/s, done.
-	Total 59 (delta 2), reused 59 (delta 2)
-	remote: Resolving deltas: 100% (2/2), done.
-	To git@github.com:MIT-DB-Class/homework-solns-2018-<athena username>.git
-	 * [new branch]      master -> master
-	Branch master set up to track remote branch master from origin.
-   ```
-
-
-6. That last command was a bit special and only needs to be run the first time to setup the remote tracking branches.
-   Now we should be able to just run `git push` without the arguments. Try it and you should get the following:
-
-   ```bash
-    $ git push
-      Everything up-to-date
-   ```
-
-If you don't know Git that well, this probably seemed very arcane. Just keep using Git and you'll understand more and
-more. You aren't required to use commands like commit and push as you develop your labs, but will find them useful for
-debugging. We'll provide explicit instructions on how to use these commands to actually upload your final lab solution.
-
-## Getting Newly Released Labs <a name="getting-newly-released-lab"></a>
-
-(You don't need to follow these instructions until Lab 1.)
-
-Pulling in labs that are released or previous lab solutions should be easy as long as you set up your repository based
-on the instructions in the last section.
-
-1. All new lab and previous lab solutions will be posted to the [labs](https://github.com/MIT-DB-Class/simple-db-hw)
-   repository in the class organization.
-
-   Check it periodically as well as Piazza's announcements for updates on when the new labs are released.
-
-2. Once a lab is released, pull in the changes from your simpledb directory:
-
-   ```bash
-    $ git pull upstream master
-   ```
-
-   **OR** if you wish to be more explicit, you can `fetch` first and then `merge`:
-
-   ```bash
-    $ git fetch upstream
-    $ git merge upstream/master
-   ```
-   Now commit to your master branch:
-   ```bash
-	$ git push origin master
-   ```
-
-3. If you've followed the instructions in each lab, you should have no merge conflicts and everything should be peachy.
-
-## <a name="word-of-caution"></a> Word of Caution
-
-Git is a distributed version control system. This means everything operates offline until you run `git pull`
-or `git push`. This is a great feature.
-
-The bad thing is that you may forget to `git push` your changes. This is why we **strongly** suggest that you check
-GitHub to be sure that what you want us to see matches up with what you expect.
-
-## <a name="help"></a> Help!
-
-If at any point you need help with setting all this up, feel free to reach out to one of the TAs or the instructor.
-Their contact information can be found on the [course homepage](http://db.csail.mit.edu/6.830/).
-
-[join]: https://github.com/join
-
-[resources]: https://help.github.com/articles/what-are-other-good-resources-for-learning-git-and-github
-
-[ssh-key]: https://help.github.com/articles/generating-ssh-keys
+总的来说, 实验难度不大, 但是可以让我们快速入门数据库领域, 可以说是顶级的数据库课程了.
