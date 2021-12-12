@@ -188,7 +188,29 @@ public class BTreeFile implements DbFile {
     private BTreeLeafPage findLeafPage(TransactionId tid, Map<PageId, Page> dirtypages, BTreePageId pid,
                                        Permissions perm, Field f) throws DbException, TransactionAbortedException {
         // some code goes here
-        return null;
+        final int pageType = pid.pgcateg();
+        // 1.If type is leaf, search done
+        if (pageType == BTreePageId.LEAF) {
+            return (BTreeLeafPage) getPage(tid, dirtypages, pid, perm);
+        }
+        final BTreeInternalPage internalPage = (BTreeInternalPage) getPage(tid, dirtypages, pid, Permissions.READ_ONLY);
+        final Iterator<BTreeEntry> iterator = internalPage.iterator();
+        BTreeEntry entry = null;
+        while (iterator.hasNext()) {
+            entry = iterator.next();
+            if (f == null) {
+                /**
+                 *  If the provided value is null, recurse on the left-most child every
+                 * time in order to find the left-most leaf page. Finding the left-most leaf page
+                 * is useful for scanning the entire file.
+                 */
+                return  findLeafPage(tid, dirtypages, entry.getLeftChild(), perm, f);
+            }
+            if (entry.getKey().compare(Op.GREATER_THAN_OR_EQ, f)) {
+                return  findLeafPage(tid, dirtypages, entry.getLeftChild(), perm, f);
+            }
+        }
+        return entry == null ? null : findLeafPage(tid, dirtypages, entry.getRightChild(), perm, f);
     }
 
     /**
