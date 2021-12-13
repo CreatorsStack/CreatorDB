@@ -19,6 +19,8 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 [实验五题解文档](document/lab5-resolve.md)
 
 ## 实验一 -- Storage
+![image-20211003151458924](https://gitee.com/zisuu/mypicture/raw/master/597db65e95f3031f3ed39f8381d7bcbf.png)
+
 
 实验一主要涉及存储 -- 也即和各种 file, page, bufferPool 等打交道
 
@@ -57,7 +59,19 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 
 ## 实验四 -- Transaction
 
-在这个lab中，需要在SimpleDB实现简单的 locking-based transaction system，需要在代码的合适位置添加锁和解锁，也要给每个transaction授予锁，并且跟进每个拥有锁的transaction。
+实验四要求我们实现基于 2pl 协议的事务, 先来说一下在 simpleDB 中是如何实现事务的:
+
+![image-20211213163243849](https://gitee.com/zisuu/mypicture/raw/master/image-20211213163243849.png)
+
+在SimpleDB中，每个事务都会有一个Transaction对象，我们用TransactionId来唯一标识一个事务，TransactionId在Transaction对象创建时自动获取。事务开始前，会创建一个Transaction对象，trasactionId 会被传入到 sql 执行树的每一个 operator 算子中，加锁时根据加锁页面、锁的类型、加锁的事务id去进行加锁。
+
+比如, 底层的 A, B seqScan 算子, 就会给对应的 page 加读锁.
+
+我们知道, page 是通过 bufferPool.getPage() 来统一获取的, 因此, 加锁的逻辑就在 bufferPool.getPage() 中
+
+具体的方法就是实现一个 lockManager, lockManager 包含每个 page 和其持有其锁的事务的队列
+
+当事务完成时，调用transactionComplete去完成最后的处理。transactionComplete会根据成功还是失败去分别处理，如果成功，会将事务id对应的脏页写到磁盘中，如果失败，会将事务id对应的脏页淘汰出bufferpool并从磁盘中获取原来的数据页。脏页处理完成后，会释放事务id在所有数据页中加的锁。
 
 - 需要实现一个 LockManager, 跟踪每一个 transaction 持有的锁, 并进行锁管理.
 - 需要实现 LifeTime lock, 也即有限等待策略
