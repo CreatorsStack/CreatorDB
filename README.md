@@ -78,6 +78,7 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 - 需要实现 DeadLock detect, 可以采用超时等待, 也可以通过依赖图进行检查
 
 ## 实验五 -- B+ tree
+![img](https:////upload-images.jianshu.io/upload_images/7862980-42f0acde88d3c0cb.png?imageMogr2/auto-orient/strip|imageView2/2/w/825/format/webp)
 
 ab5主要是实现B+树索引，主要有查询、插入、删除等功能
 
