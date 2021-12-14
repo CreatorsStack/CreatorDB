@@ -250,11 +250,19 @@ public class BufferPool {
         // some code goes here
         // not necessary for lab1
         try {
+            // for lab6, write update record first
+            //            final LogFile logFile = Database.getLogFile();
+            //            if (page.isDirty() != null) {
+            //                logFile.logWrite(page.isDirty(), page.getBeforeImage(), page);
+            //                logFile.force();
+            //            }
+
+            // Write page
             final DbFile tableFile = Database.getCatalog().getDatabaseFile(page.getId().getTableId());
             tableFile.writePage(page);
             page.markDirty(false, null);
         } catch (IOException e) {
-            // Todo: add logger
+            e.printStackTrace();
             System.out.println("Error happen when flush page to disk:" + e.getMessage());
         }
     }

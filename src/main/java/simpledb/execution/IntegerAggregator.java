@@ -72,7 +72,7 @@ public class IntegerAggregator implements Aggregator {
             buildTupleDesc(tup.getTupleDesc());
         }
         final IntField agField = (IntField) tup.getField(this.agField);
-        final Field gbField = tup.getField(this.gbField);
+        final Field gbField = this.gbField == NO_GROUPING ? new IntField(0) : tup.getField(this.gbField);
         if (this.gbField != NO_GROUPING) {
             doAggregation(gbField, agField.getValue());
         } else {
@@ -138,7 +138,7 @@ public class IntegerAggregator implements Aggregator {
         // some code goes here
         if (this.gbField == NO_GROUPING) {
             Type[] types = new Type[] { Type.INT_TYPE };
-            String[] names = new String[] { originTd.getFieldName(this.gbField) };
+            String[] names = new String[] { "" };
             this.td = new TupleDesc(types, names);
         } else {
             Type[] types = new Type[] { this.gbFieldType, Type.INT_TYPE };

@@ -76,13 +76,13 @@ public class LruCache<K, V> {
         return null;
     }
 
+    // Return the evicted item if the space is insufficient
     public synchronized V put(K key, V value) {
         if (this.nodeMap.containsKey(key)) {
             Node node = this.nodeMap.get(key);
             node.value = value;
             moveToHead(node);
         } else {
-            // We can't remove page here, because we should implement the logic of evict page in BufferPool
             //            if (this.nodeMap.size() == this.maxSize) {
             //                Node last = removeLast();
             //                this.nodeMap.remove(last.key);

@@ -128,7 +128,7 @@ public class TupleDesc implements Serializable {
      */
     public String getFieldName(int i) throws NoSuchElementException {
         // some code goes here
-        if (i >= this.fieldNum) {
+        if (i >= this.fieldNum || i < 0) {
             throw new NoSuchElementException();
         }
         return this.descList.get(i).fieldName;
