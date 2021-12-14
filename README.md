@@ -8,21 +8,23 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 
 项目文档:
 
-[实验一题解文档](document/lab1-resolve.md)
+- [lab1 - 存储模型](document/lab1-resolve.md)
 
-[实验二题解文档](document/lab2-resolve.md)
+- [lab2 - 常见算子和 volcano 执行模型](document/lab2-resolve.md)
 
-[实验三题解文档](document/lab3-resolve.md)
+- [lab3 - 优化器](document/lab3-resolve.md)
 
-[实验四题解文档](document/lab4-resolve.md)
+- [lab4 - 基于 2pl 的事务](document/lab4-resolve.md)
 
-[实验五题解文档](document/lab5-resolve.md)
+- [lab5 - b+ 树索引](document/lab5-resolve.md)
 
-## 实验一 -- Storage
+- [lab6 - 崩溃恢复与回滚](document/lab6-resolve.md)
+
+## lab1 - Storage
 ![image-20211003151458924](https://gitee.com/zisuu/mypicture/raw/master/597db65e95f3031f3ed39f8381d7bcbf.png)
 
 
-实验一主要涉及存储 -- 也即和各种 file, page, bufferPool 等打交道
+lab1 主要涉及存储 -- 也即和各种 file, page, bufferPool 等打交道
 
 - TupleDesc: td 描述了一个表每一列的元数据, 也即每个列的类型等等
 - Tuple: 代表了一行的数据
@@ -31,9 +33,9 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 - BufferPool: SimpleDb 的缓存组件, 可以搭配 Lru 缓存, 效果更佳. 是整个系统最核心的组件, 任何地方访问一个 page 都需要通过 bufferPool.getPage() 方法
 - CataLog: SimpleDb 等全局目录, 包含了tableid 和 table 的映射关系等
 
-## 实验二 -- Operators
+## lab2 - Operators & Volcano
 
-实验二主要涉及算子的开发: 也即各种 Operator, 如 seqScan, join, aggregation 等
+lab2 主要涉及算子的开发: 也即各种 Operator, 如 seqScan, join, aggregation 等
 
 需要注意的是, SimpleDb 采用了的 process model 是 volcano model, 每个算子都实现了相同的接口 --- OpIterator
 
@@ -45,7 +47,7 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 
 关于 Volcano model, 举个例子, 在 lab2 中会更详细的介绍![img](https://gitee.com/zisuu/mypicture/raw/master/2282357-20210228200010429-1462288556.png)
 
-## 实验三 -- Query Optimization
+## lab3 -- Query Optimization
 
 这个实验主要介绍了如何简单的进行数据估算和 join 优化
 
@@ -57,7 +59,7 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 
 ![img](https://img-blog.csdnimg.cn/20191220224026447.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hqdzE5OTY2Ng==,size_16,color_FFFFFF,t_70)
 
-## 实验四 -- Transaction
+## lab4 -- Transaction
 
 实验四要求我们实现基于 2pl 协议的事务, 先来说一下在 simpleDB 中是如何实现事务的:
 
@@ -77,15 +79,18 @@ SimpleDb 是一个 DBMS 数据库管理系统, 包含存储, 算子, 优化, 事
 - 需要实现 LifeTime lock, 也即有限等待策略
 - 需要实现 DeadLock detect, 可以采用超时等待, 也可以通过依赖图进行检查
 
-## 实验五 -- B+ tree
+## lab5 -- B+ tree
 ![img](https:////upload-images.jianshu.io/upload_images/7862980-42f0acde88d3c0cb.png?imageMogr2/auto-orient/strip|imageView2/2/w/825/format/webp)
 
-ab5主要是实现B+树索引，主要有查询、插入、删除等功能
+lab5主要是实现B+树索引，主要有查询、插入、删除等功能
 
 - 查询主要根据B+树的特性去递归查找即可
 - 插入要考虑节点的分裂（节点tuples满的时候）
 - 删除要考虑节点内元素的重新分配（当一个页面比较空，相邻页面比较满的时候），兄弟节点的合并（当相邻两个页面的元素都比较空的时候）
 
+## lab6 -- log & rollback & recover
+
+lab6 主要是实现一个 redo log & undo log 日志系统, 使得 simpledb 支持日志回滚和崩溃恢复
 
 
 ## 总结
