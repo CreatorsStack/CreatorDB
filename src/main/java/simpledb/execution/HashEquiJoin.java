@@ -15,7 +15,6 @@ public class HashEquiJoin extends Operator {
     private static final long   serialVersionUID = 1L;
     private final JoinPredicate pred;
     private OpIterator          child1, child2;
-    private final TupleDesc     comboTD;
     transient private Tuple     t1               = null;
     transient private Tuple     t2               = null;
 
@@ -34,7 +33,7 @@ public class HashEquiJoin extends Operator {
         this.pred = p;
         this.child1 = child1;
         this.child2 = child2;
-        comboTD = TupleDesc.merge(child1.getTupleDesc(), child2.getTupleDesc());
+        this.td = TupleDesc.merge(child1.getTupleDesc(), child2.getTupleDesc());
     }
 
     public JoinPredicate getJoinPredicate() {
@@ -42,7 +41,7 @@ public class HashEquiJoin extends Operator {
     }
 
     public TupleDesc getTupleDesc() {
-        return comboTD;
+        return this.td;
     }
 
     public String getJoinField1Name() {
@@ -119,7 +118,7 @@ public class HashEquiJoin extends Operator {
         int td2n = t2.getTupleDesc().numFields();
 
         // set fields in combined tuple
-        Tuple t = new Tuple(comboTD);
+        Tuple t = new Tuple(this.td);
         for (int i = 0; i < td1n; i++)
             t.setField(i, t1.getField(i));
         for (int i = 0; i < td2n; i++)

@@ -91,7 +91,8 @@ public class AggregateTest extends SimpleDbTestBase {
   /**
    * Unit test for Aggregate.getTupleDesc()
    */
-  @Test public void getTupleDesc() {
+  @Test
+  public void getTupleDesc() {
     // Int, Int TupleDesc
     Aggregate op = new Aggregate(scan1, 0, 0,
             Aggregator.Op.MIN);

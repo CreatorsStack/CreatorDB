@@ -21,7 +21,6 @@ public class Join extends Operator {
     private JoinPredicate     joinPredicate;
     private OpIterator        child1;
     private OpIterator        child2;
-    private TupleDesc         td;
 
     private JoinStrategy      joinStrategy;
     private TupleIterator     iterator;
@@ -99,7 +98,9 @@ public class Join extends Operator {
 
     public void close() {
         // some code goes here
-        this.joinStrategy.close();
+        if (this.joinStrategy instanceof SortMergeJoin) {
+            ((SortMergeJoin) this.joinStrategy).close();
+        }
         this.iterator.close();
         this.child1.close();
         this.child2.close();

@@ -2,7 +2,7 @@ package simpledb.optimizer;
 
 import java.util.List;
 
-/** Class returned by {@link JoinOptimizer#computeCostAndCardOfSubplan} specifying the
+/** Class returned by {@linkJoinOptimizer#computeCostAndCardOfSubplan} specifying the
     cost and cardinality of the optimal plan represented by plan.
 */
 public class CostCard {
