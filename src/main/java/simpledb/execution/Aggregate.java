@@ -28,7 +28,6 @@ public class Aggregate extends Operator {
 
     private Aggregator.Op     op;
     private Aggregator        aggregator;
-    private TupleDesc         td;
 
     private TupleIterator     iterator;
 

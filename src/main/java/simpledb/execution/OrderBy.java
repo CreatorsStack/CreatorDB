@@ -15,7 +15,6 @@ public class OrderBy extends Operator {
 
     private static final long serialVersionUID = 1L;
     private OpIterator        child;
-    private final TupleDesc   td;
     private final List<Tuple> childTups        = new ArrayList<>();
     private final int         orderByField;
     private final String      orderByFieldName;

@@ -50,5 +50,4 @@ public abstract class JoinStrategy {
     // Join child1 and child2, return a tuple iterator result
     public abstract TupleIterator doJoin();
 
-    public abstract void close();
 }

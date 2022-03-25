@@ -16,7 +16,6 @@ public class Filter extends Operator {
 
     private Predicate         predicate;
     private OpIterator        child;
-    private TupleDesc         tupleDesc;
 
     /**
      * Constructor accepts a predicate to apply and a child operator to read
@@ -31,7 +30,7 @@ public class Filter extends Operator {
         // some code goes here
         this.child = child;
         this.predicate = p;
-        this.tupleDesc = child.getTupleDesc();
+        this.td = child.getTupleDesc();
     }
 
     public Predicate getPredicate() {
@@ -41,7 +40,7 @@ public class Filter extends Operator {
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return this.tupleDesc;
+        return this.td;
     }
 
     public void open() throws DbException, NoSuchElementException, TransactionAbortedException {

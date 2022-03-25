@@ -18,8 +18,4 @@ public class HashJoin extends JoinStrategy {
         return null;
     }
 
-    @Override
-    public void close() {
-
-    }
 }

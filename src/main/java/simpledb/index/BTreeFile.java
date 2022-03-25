@@ -28,7 +28,7 @@ import simpledb.transaction.TransactionId;
  */
 public class BTreeFile implements DbFile {
 
-    private final File      f;
+    private final File      file;
     private final TupleDesc td;
     private final int       tableid;
     private final int       keyField;
@@ -42,7 +42,7 @@ public class BTreeFile implements DbFile {
      * @param td - the tuple descriptor of tuples in the file
      */
     public BTreeFile(File f, int key, TupleDesc td) {
-        this.f = f;
+        this.file = f;
         this.tableid = f.getAbsoluteFile().hashCode();
         this.keyField = key;
         this.td = td;
@@ -52,7 +52,7 @@ public class BTreeFile implements DbFile {
      * Returns the File backing this BTreeFile on disk.
      */
     public File getFile() {
-        return f;
+        return file;
     }
 
     /**
@@ -87,7 +87,7 @@ public class BTreeFile implements DbFile {
     public Page readPage(PageId pid) {
         BTreePageId id = (BTreePageId) pid;
 
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f))) {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
             if (id.pgcateg() == BTreePageId.ROOT_PTR) {
                 byte[] pageBuf = new byte[BTreeRootPtrPage.getPageSize()];
                 int retval = bis.read(pageBuf, 0, BTreeRootPtrPage.getPageSize());
@@ -142,7 +142,7 @@ public class BTreeFile implements DbFile {
         BTreePageId id = (BTreePageId) page.getId();
 
         byte[] data = page.getPageData();
-        RandomAccessFile rf = new RandomAccessFile(f, "rw");
+        RandomAccessFile rf = new RandomAccessFile(file, "rw");
         if (id.pgcateg() == BTreePageId.ROOT_PTR) {
             rf.write(data);
             rf.close();
@@ -159,7 +159,7 @@ public class BTreeFile implements DbFile {
      */
     public int numPages() {
         // we only ever write full pages
-        return (int) ((f.length() - BTreeRootPtrPage.getPageSize()) / BufferPool.getPageSize());
+        return (int) ((file.length() - BTreeRootPtrPage.getPageSize()) / BufferPool.getPageSize());
     }
 
     /**
@@ -1049,9 +1049,9 @@ public class BTreeFile implements DbFile {
     BTreeRootPtrPage getRootPtrPage(TransactionId tid, Map<PageId, Page> dirtypages) throws DbException, IOException,
                                                                                     TransactionAbortedException {
         synchronized (this) {
-            if (f.length() == 0) {
+            if (file.length() == 0) {
                 // create the root pointer page and the root page
-                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(f, true));
+                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(file, true));
                 byte[] emptyRootPtrData = BTreeRootPtrPage.createEmptyPageData();
                 byte[] emptyLeafData = BTreeLeafPage.createEmptyPageData();
                 bw.write(emptyRootPtrData);
@@ -1111,7 +1111,7 @@ public class BTreeFile implements DbFile {
         if (headerId == null) {
             synchronized (this) {
                 // create the new page
-                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(f, true));
+                BufferedOutputStream bw = new BufferedOutputStream(new FileOutputStream(file, true));
                 byte[] emptyData = BTreeInternalPage.createEmptyPageData();
                 bw.write(emptyData);
                 bw.close();
@@ -1146,7 +1146,7 @@ public class BTreeFile implements DbFile {
         BTreePageId newPageId = new BTreePageId(tableid, emptyPageNo, pgcateg);
 
         // write empty page to disk
-        RandomAccessFile rf = new RandomAccessFile(f, "rw");
+        RandomAccessFile rf = new RandomAccessFile(file, "rw");
         rf.seek(BTreeRootPtrPage.getPageSize() + (long) (emptyPageNo - 1) * BufferPool.getPageSize());
         rf.write(BTreePage.createEmptyPageData());
         rf.close();

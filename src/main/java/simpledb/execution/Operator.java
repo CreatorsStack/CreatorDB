@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 public abstract class Operator implements OpIterator {
 
     private static final long serialVersionUID = 1L;
+    public TupleDesc          td;
 
     public boolean hasNext() throws DbException, TransactionAbortedException {
         if (!this.open)

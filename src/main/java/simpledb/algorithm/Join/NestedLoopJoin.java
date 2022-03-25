@@ -39,8 +39,4 @@ public class NestedLoopJoin extends JoinStrategy {
         return new TupleIterator(this.td, tuples);
     }
 
-    @Override
-    public void close() {
-
-    }
 }
