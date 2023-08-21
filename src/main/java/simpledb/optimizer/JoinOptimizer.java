@@ -239,6 +239,30 @@ public class JoinOptimizer {
         }
     }
 
+    public <T> HashMap<Integer, Set<Set<T>>> buildMap(List<T> v) {
+        final HashMap<Integer, Set<Set<T>>> result = new HashMap<>();
+        int n = v.size();
+        int state = 0;
+        while(state < (1 << n)){
+            Set<T> cur = new HashSet<>();
+            for(int j = 0; j < n; j ++ ){
+                if(((state >> j) & 1) == 1){
+                    cur.add(v.get(j));
+                }
+            }
+            int count = Integer.bitCount(state);
+            if(result.containsKey(count)){
+                result.get(count).add(cur);
+            }else{
+                Set<Set<T>> value = new HashSet<>();
+                value.add(cur);
+                result.put(count, value);
+            }
+            state ++ ;
+        }
+        return result;
+    }
+
     /**
      * Compute a logical, reasonably efficient join on the specified tables. See
      * PS4 for hints on how this should be implemented.
@@ -259,24 +283,30 @@ public class JoinOptimizer {
      *             when stats or filter selectivities is missing a table in the
      *             join, or or when another internal error occurs
      */
-    public List<LogicalJoinNode> orderJoins(Map<String, TableStats> stats, Map<String, Double> filterSelectivities,
-                                            boolean explain) throws ParsingException {
-        final PlanCache pc = new PlanCache();
+    public List<LogicalJoinNode> orderJoins(
+            Map<String, TableStats> stats,
+            Map<String, Double> filterSelectivities, boolean explain)
+            throws ParsingException {
+
+        PlanCache pc = new PlanCache();
+        int n = this.joins.size();
+
         CostCard costCard = null;
-        for (int i = 1; i <= this.joins.size(); i++) {
-            final Set<Set<LogicalJoinNode>> subsets = enumerateSubsets(this.joins, i);
-            for (final Set<LogicalJoinNode> subPlan : subsets) {
+        HashMap<Integer, Set<Set<LogicalJoinNode>>> sizeToJoins = buildMap(this.joins);
+        for(int i = 1; i <= n; i ++ ){
+            Set<Set<LogicalJoinNode>> sets = sizeToJoins.get(i);
+            for(Set<LogicalJoinNode> subset: sets){
                 double bestCost = Double.MAX_VALUE;
-                for (final LogicalJoinNode removeNode : subPlan) {
-                    final CostCard cc = computeCostAndCardOfSubplan(stats, filterSelectivities, removeNode, subPlan,
-                        bestCost, pc);
-                    if (cc != null) {
+                for(LogicalJoinNode removedNode: subset){
+                    final CostCard cc = computeCostAndCardOfSubplan(stats, filterSelectivities, removedNode, subset,
+                            bestCost, pc);
+                    if(cc != null){
                         bestCost = cc.cost;
                         costCard = cc;
                     }
                 }
-                if (bestCost != Double.MAX_VALUE) {
-                    pc.addPlan(subPlan, bestCost, costCard.card, costCard.plan);
+                if(bestCost != Double.MAX_VALUE){
+                    pc.addPlan(subset, bestCost, costCard.card, costCard.plan);
                 }
             }
         }
